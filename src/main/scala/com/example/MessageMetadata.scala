@@ -7,6 +7,24 @@ import akka.actor._
 import com.example.MetaData.Entry
 
 object MessageMetadataDriver extends CompletableApp(3) {
+  import MetaData._
+  val processor3 = system.actorOf(Props(classOf[Processor], None), "processor3")
+  val processor2 = system.actorOf(Props(classOf[Processor], Some(processor3)), "processor2")
+  val processor1 = system.actorOf(Props(classOf[Processor], Some(processor2)), "processor1")
+
+  val entry = Entry(
+    Who("driver"),
+    What("Started"),
+    Where(this.getClass.getSimpleName, "driver"),
+    new Date(),
+    Why("Running processors")
+  )
+
+  processor1 ! SomeMessage("Data...", entry.asMetadata)
+
+  awaitCompletion
+
+  println("Completed.")
 }
 
 object MetaData {
@@ -24,8 +42,6 @@ object MetaData {
     def asMetadata = (new MetaData(List[Entry](this)))
   }
 }
-
-import MetaData._
 
 case class MetaData(entries: List[Entry]) {
   def this() = this(List.empty[Entry])
