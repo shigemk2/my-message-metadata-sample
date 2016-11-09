@@ -24,13 +24,13 @@ object MetaData {
   }
 }
 
-import MeataData._
+import MetaData._
 
-case class MeataData(entries: List[Entry]) {
+case class MetaData(entries: List[Entry]) {
   def this() = this(List.empty[Entry])
-  def this(entry: Entry) = this(List[List](entry))
+  def this(entry: Entry) = this(List[Entry](entry))
 
-  def including(entry: Entry): MeataData = {
-    MeataData(entries :+ entry)
+  def including(entry: Entry): MetaData = {
+    MetaData(entries :+ entry)
   }
 }
