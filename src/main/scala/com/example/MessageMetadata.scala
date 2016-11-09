@@ -34,3 +34,9 @@ case class MetaData(entries: List[Entry]) {
     MetaData(entries :+ entry)
   }
 }
+
+case class SomeMessage(payload: String, metadata: MetaData = new MetaData()) {
+  def including(entry: Entry): SomeMessage= {
+    SomeMessage(payload, metadata.including(entry))
+  }
+}
