@@ -1,7 +1,8 @@
 package com.example
 
-import java.util.Date
+import java.util.{Date, Random}
 
+import akka.actor.Actor.Receive
 import akka.actor._
 import com.example.MetaData.Entry
 
@@ -39,4 +40,41 @@ case class SomeMessage(payload: String, metadata: MetaData = new MetaData()) {
   def including(entry: Entry): SomeMessage= {
     SomeMessage(payload, metadata.including(entry))
   }
+}
+
+class Processor(next: Option[ActorRef]) extends Actor {
+  import MetaData._
+
+  val random = new Random()
+
+  override def receive: Receive = {
+    case message: SomeMessage =>
+      report(message)
+
+      val nextMessage = message.including(entry)
+
+      if (next.isDefined) {
+        next.get ! nextMessage
+      } else {
+        report(nextMessage, "complete")
+      }
+
+      MessageMetadataDriver.completedStep()
+  }
+
+  def because = s"Because: ${random.nextInt(10)}"
+
+  def entry =
+    Entry(Who(user),
+      What(wasProcessed),
+      Where(this.getClass.getSimpleName, self.path.name),
+      new Date(),
+      Why(because))
+
+  def report(message: SomeMessage, heading: String = "received") =
+    println(s"${self.path.name} $heading: $message")
+
+  def user = s"user${random.nextInt(100)}"
+
+  def wasProcessed = s"Processed: ${random.nextInt(5)}"
 }
